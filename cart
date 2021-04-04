@@ -1,0 +1,233 @@
+<?php include("include/header.php") ?>
+<div class="page-title fix"><!--Start Title-->
+	<div class="overlay section">
+		<h2>Cart</h2>
+	</div>
+</div><!--End Title-->
+<section class="cart-page page fix"><!--Start Cart Area-->
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="table-responsive">
+					<table class="table cart-table">
+						<thead class="table-title">
+							<tr>
+								<th class="produ">PRODUCT</th>
+								<th class="namedes">PRODUCT NAME &amp; DESCRIPTION</th>
+								<th class="unit">UNIT PRICE</th>
+								<th class="quantity">QUANTITY</th>
+								<th class="valu">VALUE</th>
+								<th class="acti">ACTION</th>
+							</tr>													
+						</thead>
+						<tbody>
+							<?php 
+							$prod_id=array();
+							include('controller/connection.php');
+							$user_id=$_SESSION['id'];
+							  $rest=mysqli_query($con,"SELECT carts.quantity as cq,product.id,carts.sub_total,product.name,product.description,product.price FROM carts INNER JOIN product on carts.product_id = product.id and carts.user_id IN('$user_id')");
+						       while ($row = mysqli_fetch_array($rest)) {
+                                
+                                $prod_id[] =$row['id'];
+							?>
+							<tr class="table-info">
+								<td class="produ">
+									<a href="#"><img alt="" src="img/cart-1.jpg"></a>
+								</td>
+								<td class="namedes">
+									<h2><a href="#"><?php echo $row['name'];?></a></h2>
+									<p><?php echo $row['description'];?></p>
+								</td>
+								<td class="unit">
+									<h5>$<?php echo $row['price'];?></h5>
+								</td>
+								<td class="quantity" id="<?php echo $row['id'];?>">
+									<div class="cart-plus-minus">
+										<input type="number" value="<?php echo $row['cq'];?>" name="qtybutton" class="cart-plus-minus-box">
+									</div>
+								</td>
+								<td style="display: none;">
+								<input type="hidden" name="pid" id="pid" value="<?php echo $row['id'];?>">
+								</td>
+								<td class="valu">
+									<h5>$<?php echo ($row['price']*$row['cq']);?></h5>
+								</td>
+								<td class="acti">
+									<a href="#"><i class="fa fa-trash-o"></i></a>
+								</td>
+							</tr>
+						<?php } foreach ($prod_id as $p_id) { ?>
+							
+					<?php	} 
+
+						?>
+							<!-- <tr class="table-info">
+								<td class="produ">
+									<a href="#"><img alt="" src="img/cart-2.jpg"></a>
+								</td>
+								<td class="namedes">
+									<h2><a href="#">PRODUCT NAME DEMO</a></h2>
+									<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+								</td>
+								<td class="unit">
+									<h5>$120</h5>
+								</td>
+								<td class="quantity">
+									<div class="cart-plus-minus">
+										<input type="text" value="0" name="qtybutton" class="cart-plus-minus-box">
+									</div>
+								</td>
+								<td class="valu">
+									<h5>$120</h5>
+								</td>
+								<td class="acti">
+									<a href="#"><i class="fa fa-trash-o"></i></a>
+								</td>
+							</tr> -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="col-sm-6 col-md-7">
+				<div class="coupon">
+					<a href="#">Continue Shopping</a>
+					<h3>DISCOUNT COUPON CODE</h3>
+					<input type="text" placeholder="DISCOUNT COUPON CODE HERE..." />
+					<a href="#">Apply Coupon</a>
+					<p><span>NOTE :</span> Shipping and Taxes are estimated and updated during checkout based on your billing and shipping information.</p>
+				</div>
+			</div>
+			<div class="col-sm-6 col-md-5">
+				<div class="proceed fix">
+					<a href="#">CLEAR SHOPPING CART</a>
+					<a href="#">UPDATE SHOPPING CART</a>
+					<div class="total">
+						<h5>Sub Total <span>$420</span></h5>
+						<h6>Grand Total <span>$420</span></h6>
+					</div>
+					<a id="procedto" href="checkout.html">PROCEED TO CHECK OUT</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</section><!--End Cart Area-->
+
+<?php include("include/footer.php") ?>
+<script>
+      $(document).ready(function(){
+        // $("#catclick").change(function(){
+        //   var catclick = $("#catclick").val();
+          // $.post("controller/subcat.php",{
+          //   catclick:catclick}
+          //        ,function(data){
+          //   $("#resultcat").html(data);
+          // });
+        // });
+
+        $("body").on("click",".dec",function(){
+            var cart=$(this).parents().eq(1).attr("id");
+            var remove="remove";
+            $.get("controller/cart.php",{
+            cart:cart,remove:remove}
+                 ,function(data){
+           location.reload();
+          });
+        });
+
+         $("body").on("click",".inc",function(){
+            var cart=$(this).parents().eq(1).attr("id");
+            var add="add";
+            $.get("controller/cart.php",{
+            cart:cart,add:add}
+                 ,function(data){
+                 location.reload();
+            // $("#resultcat").html(data);
+          });
+        });
+
+     // $(".dec").click(function(){
+     // 	var pid = $("#pid").val();
+     //       alert(pid);
+
+     //      });
+      });
+</script> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+   session_start();
+   include('connection.php');
+   if (isset($_GET['add'])) {
+       $pid=htmlspecialchars($_GET['cart']);
+       $user_id=$_SESSION['id'];
+      
+       $rest=mysqli_query($con,"SELECT * from carts where product_id ='".$pid."' AND user_id='".$user_id."'");
+       $count=mysqli_num_rows($rest);
+       $rows=mysqli_fetch_array($rest,MYSQLI_ASSOC);
+       if ($count<1) {
+         $query="SELECT * from product where id ='".$pid."'";
+       $res=mysqli_query($con,$query);
+       while ($row = mysqli_fetch_array($res)) {
+        $price=$row['price'];
+        $pname=$row['name'];   
+       }
+
+        $quantity=1;
+           $cartsql = mysqli_query($con,"INSERT INTO `carts`(`user_id`, `product_id`, `quantity`, `sub_total`) VALUES('".$user_id."','".$pid."','".$quantity."','".$price."')");
+              header("Location:../cart.php");
+       }
+       else{
+         $quantity=$rows['quantity']+1;
+         
+        $upsql = mysqli_query($con,"UPDATE `carts` SET `quantity`='".$quantity."' Where product_id ='".$pid."' AND user_id='".$user_id."'");
+            header("Location:../cart.php");
+       }
+           
+    
+
+       		// $_SESSION['mes']="We only " .$row['quantity']." ".$row['name']." available";
+       		// header("Location:checkout.php");
+       	       
+   }
+
+   if (isset($_GET['remove'])) {
+       $pid=htmlspecialchars($_GET['cart']);
+       $user_id=$_SESSION['id'];
+       $rest=mysqli_query($con,"SELECT * from carts where product_id ='".$pid."' AND user_id='".$user_id."'");
+       $count=mysqli_num_rows($rest);
+       $rows=mysqli_fetch_array($rest,MYSQLI_ASSOC);
+       $quantity=$rows['quantity'];
+       if ($quantity>1) {
+        $quantity=$quantity-1;
+        $upsql = mysqli_query($con,"UPDATE `carts` SET `quantity`='".$quantity."' Where product_id ='".$pid."' AND user_id='".$user_id."'");
+            header("Location:../cart.php");
+
+        }
+        else{
+           header("Location:../cart.php");
+        }
+   }
+
+   if (isset($_GET['delete'])) {
+       
+      $_SESSION['product_' .$_GET['delete']]=0;
+      unset($_SESSION['item_quantity']);
+         unset($_SESSION['item_total']);
+
+       	header("Location:checkout.php");
+       
+   }
+?>
